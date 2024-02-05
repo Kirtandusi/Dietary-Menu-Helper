@@ -1,1 +1,2 @@
 # Dietary-Menu-Helper
+The Dietary Menu Helper allows UW-Madison students to get personal AI powered dining hall meal suggestions, highlighting preferences for dietary restritions, recommended caloric intake, meal variety and more.
