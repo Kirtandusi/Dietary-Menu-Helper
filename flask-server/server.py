@@ -23,4 +23,20 @@ def scrape_menu():
             for item in items:
                 item_name = item.find("h3").text.strip()
                 item_description = item.find("p").text.strip()
-                menu_items.append({"name": item_name, "description": item_descrip
+                menu_items.append({"name": item_name, "description": item_description})
+            menus.append({"date": date, "items": menu_items})
+        
+        return menus
+    else:
+        return None
+
+@app.route("/menu")
+def menu():
+    menus = scrape_menu()
+    if menus:
+        return render_template('menu.html', menus=menus)
+    else:
+        return "Failed to fetch the menu."
+
+if __name__ == "__main__":
+    app.run(debug=True)
