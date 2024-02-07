@@ -1,11 +1,12 @@
 import './App.css';
 import './tailwind.css';
+import WebRouter from './WebRouter';
 
 function App() {
   return (
-    <div className="text-center text-blue-500">
-      <h1>Hello, world!</h1>
-    </div>
+    <>
+      <WebRouter />
+    </>
   );
 }
 
