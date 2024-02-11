@@ -2,12 +2,14 @@ import './App.css';
 import './tailwind.css';
 //import React from 'react';
 import WebRouter from './WebRouter';
+import Menu from './Menu';
 //import React, { useEffect, useState } from 'react';
 function App() {
   //const [menus, setMenus] = useState([]);
   return (
     <>
-      <WebRouter />
+      {/* <WebRouter /> */}
+      <Menu />
     </>
   );
   // useEffect(() => {
