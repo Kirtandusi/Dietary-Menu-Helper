@@ -8,12 +8,10 @@ const app = express();
 app.use(cors());
 
 
-function scrapeMenu(urls) {
+async function scrapeMenu(urls) {
     const today = format(new Date(), 'yyyy-MM-dd');
 
-    const allMenus = [];
-
-    for (const url of urls) {
+    const allMenus = await Promise.all(urls.map(url => 
         axios.get(url)
             .then(response => {
                 const $ = cheerio.load(response.data);
@@ -33,12 +31,15 @@ function scrapeMenu(urls) {
                     menus.push({ date, items: menuItems });
                 });
 
-                allMenus.push(menus);
+                return menus;
             })
-            .catch(error => console.error('Error fetching menu:', error));
-    }
+            .catch(error => {
+                console.error('Error fetching menu:', error);
+                return []; // return an empty array on error
+            })
+    ));
 
-    return allMenus;
+    return allMenus.flat(); // flatten the array of arrays
 }
 
 app.get('/menu', async (req, res) => {
