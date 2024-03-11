@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 function Menu() {
   const [menus, setMenus] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/menu')
+    fetch('http://localhost:3001/menu')
       .then(response => response.json())
       .then(data => setMenus(data));
   }, []);

@@ -7,6 +7,7 @@ const { format } = require('date-fns');
 const app = express();
 app.use(cors());
 
+
 function scrapeMenu(urls) {
     const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -40,8 +41,16 @@ function scrapeMenu(urls) {
     return allMenus;
 }
 
-app.get('/menu', (req, res) => {
+app.get('/menu', async (req, res) => {
+let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    let yyyy = today.getFullYear();
+
+    today = yyyy + '-' + mm + '-' + dd; // change the format as per your requirement
+
 let urls = [
+    
     `https://wisc-housingdining.nutrislice.com/menu/rhetas-market/breakfast/${today}`,
     `https://wisc-housingdining.nutrislice.com/menu/rhetas-market/lunch/${today}`,
     `https://wisc-housingdining.nutrislice.com/menu/rhetas-market/dinner/${today}`,
@@ -60,17 +69,22 @@ let urls = [
     `https://wisc-housingdining.nutrislice.com/menu/four-lakes-market/lunch/${today}`,
     `https://wisc-housingdining.nutrislice.com/menu/four-lakes-market/dinner/${today}`
 ];
+    try {
+        const menus = scrapeMenu(urls);
 
-    const menus = scrapeMenu(urls);
-
-    if (menus.length > 0) {
-        res.render('menu', { menus });
-    } else {
-        res.send('Failed to fetch the menu.');
+        if (menus.length > 0) {
+         res.render('menu', { menus });
+         } else {
+            res.send('Failed to fetch the menu.');
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('server error: ' + error.message);
     }
 });
 
-const port = process.env.PORT || 3000;
+
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
