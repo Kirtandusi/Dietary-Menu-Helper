@@ -2,10 +2,6 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-.navbar {
-    @apply bg-blue-500 text-white w-full h-20 flex items-center justify-center fixed top-0 left-0;
-}
-
 .meal-plan-box {
     @apply bg-green-500 w-1/3 h-full flex flex-col items-center justify-start border-4 border-slate-800;
 }
