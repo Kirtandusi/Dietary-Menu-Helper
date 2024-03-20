@@ -5,7 +5,7 @@ const cheerio = require('cheerio');
 const { format } = require('date-fns');
 
 const app = express();
-app.use(cors());
+app.use(express.json()); //using cors, not json
 
 
 async function scrapeMenu(urls) {
@@ -14,6 +14,7 @@ async function scrapeMenu(urls) {
     const allMenus = await Promise.all(urls.map(url => 
         axios.get(url)
             .then(response => {
+                console.log(response.data);
                 const $ = cheerio.load(response.data);
                 const dailyMenus = $('.item-list.daily-menu');
                 const menus = [];
@@ -35,6 +36,8 @@ async function scrapeMenu(urls) {
             })
             .catch(error => {
                 console.error('Error fetching menu:', error);
+                console.log(error.response && error.response.status); // Log the HTTP status code
+                console.log(error.response && error.response.data); // Log the HTTP response body
                 return []; // return an empty array on error
             })
     ));
@@ -71,7 +74,7 @@ let urls = [
     `https://wisc-housingdining.nutrislice.com/menu/four-lakes-market/dinner/${today}`
 ];
     try {
-        const menus = scrapeMenu(urls);
+        const menus = await scrapeMenu(urls);
 
         if (menus.length > 0) {
          res.render('menu', { menus });
