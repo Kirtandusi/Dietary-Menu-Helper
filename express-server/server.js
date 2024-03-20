@@ -1,33 +1,30 @@
 const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const { format } = require('date-fns');
 const puppeteer = require('puppeteer')
 const app = express();
 app.use(express.json()); //using cors, not json
 
 
 async function scrapeMenu(urls) {
-    let today = new Date();
-    let dd = String(today.getDate()).padStart(2, '0');
-    let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-    let yyyy = today.getFullYear();
-
-    today = yyyy + '-' + mm + '-' + dd; // change the format as per your requirement
-
-    // const url = `https://wisc-housingdining.nutrislice.com/menu/rhetas-market/breakfast/${today}`;
     const browser = await puppeteer.launch();
     const allFoodNames = [];
     for (let url of urls) {
-    
+    //console.log("reached website") 
     const page = await browser.newPage();
-
     await page.goto(url);
-    await page.click('button[data-testid="018026bcdb3445168421175d9ae4dd06"]');
-    await page.waitForSelector('.food-name');
-
-    const foodNames = await page.$$eval('.food-name', elements => elements.map(item => item.innerText));
+    //console.log("reached website")
+    try {
+        console.log("reached website")
+        const button = await page.waitForSelector('button[data-testid="018026bcdb3445168421175d9ae4dd06"]', { timeout: 3000 });
+        if (button) {
+            await button.click();
+        }
+    } catch (error) {
+        console.error('Button not found: ', error);
+    }
+    console.log("reached?")
+    await page.waitForSelector('span.food-name'); //problem!
+    console.log("definitely")
+    const foodNames = await page.$$eval('span.food-name', elements => elements.map(item => item.innerText));
     allFoodNames.push(foodNames);
     await page.close()
     }
