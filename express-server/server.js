@@ -3,47 +3,40 @@ const cors = require('cors');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { format } = require('date-fns');
-
+const puppeteer = require('puppeteer')
 const app = express();
 app.use(express.json()); //using cors, not json
 
 
 async function scrapeMenu(urls) {
-    const today = format(new Date(), 'yyyy-MM-dd');
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+    let yyyy = today.getFullYear();
 
-    const allMenus = await Promise.all(urls.map(url => 
-        axios.get(url)
-            .then(response => {
-                console.log(response.data);
-                const $ = cheerio.load(response.data);
-                const dailyMenus = $('.item-list.daily-menu');
-                const menus = [];
+    today = yyyy + '-' + mm + '-' + dd; // change the format as per your requirement
 
-                dailyMenus.each((index, menu) => {
-                    const date = $(menu).find('h2').text().trim();
-                    const menuItems = [];
+    // const url = `https://wisc-housingdining.nutrislice.com/menu/rhetas-market/breakfast/${today}`;
+    const browser = await puppeteer.launch();
+    const allFoodNames = [];
+    for (let url of urls) {
+    
+    const page = await browser.newPage();
 
-                    $(menu).find('.row-item').each((i, item) => {
-                        const itemName = $(item).find('h3').text().trim();
-                        const itemDescription = $(item).find('p').text().trim();
-                        menuItems.push({ name: itemName, description: itemDescription });
-                    });
+    await page.goto(url);
+    await page.click('button[data-testid="018026bcdb3445168421175d9ae4dd06"]');
+    await page.waitForSelector('.food-name');
 
-                    menus.push({ date, items: menuItems });
-                });
-
-                return menus;
-            })
-            .catch(error => {
-                console.error('Error fetching menu:', error);
-                console.log(error.response && error.response.status); // Log the HTTP status code
-                console.log(error.response && error.response.data); // Log the HTTP response body
-                return []; // return an empty array on error
-            })
-    ));
-
-    return allMenus.flat(); // flatten the array of arrays
+    const foodNames = await page.$$eval('.food-name', elements => elements.map(item => item.innerText));
+    allFoodNames.push(foodNames);
+    await page.close()
+    }
+    
+    
+    await browser.close();
+    return allFoodNames;
 }
+
 
 app.get('/menu', async (req, res) => {
 let today = new Date();
@@ -77,7 +70,7 @@ let urls = [
         const menus = await scrapeMenu(urls);
 
         if (menus.length > 0) {
-         res.render('menu', { menus });
+         res.render('menu', { menus })
          } else {
             res.send('Failed to fetch the menu.');
         }
@@ -88,7 +81,7 @@ let urls = [
 });
 
 
-const port = process.env.PORT || 3001;
+const port = 3001;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
