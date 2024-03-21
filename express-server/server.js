@@ -2,8 +2,9 @@ const express = require('express');
 const puppeteer = require('puppeteer')
 const app = express();
 app.use(express.json()); //using cors, not json
+//app.set('view engine', 'ejs');
 
-
+counter = 0;
 async function scrapeMenu(urls) {
     const browser = await puppeteer.launch();
     const allFoodNames = [];
@@ -13,22 +14,27 @@ async function scrapeMenu(urls) {
     await page.goto(url);
     //console.log("reached website")
     try {
-        console.log("reached website")
+        //console.log("reached website")
         const button = await page.waitForSelector('button[data-testid="018026bcdb3445168421175d9ae4dd06"]', { timeout: 3000 });
         if (button) {
             await button.click();
         }
     } catch (error) {
-        console.error('Button not found: ', error);
+        //console.error('Button not found: ', error);
     }
-    console.log("reached?")
+  //  console.log("reached?")
     await page.waitForSelector('span.food-name'); //problem!
-    console.log("definitely")
+   // console.log("definitely")
     const foodNames = await page.$$eval('span.food-name', elements => elements.map(item => item.innerText));
     allFoodNames.push(foodNames);
+   // console.log("semi done")
+   counter++;
+   console.log(counter)
     await page.close()
-    }
-    
+   // console.log("done again?")
+   
+    } //never breaks!
+    //console.log("finished")
     
     await browser.close();
     return allFoodNames;
@@ -67,7 +73,7 @@ let urls = [
         const menus = await scrapeMenu(urls);
 
         if (menus.length > 0) {
-         res.render('menu', { menus })
+            res.status(200).json(menus)
          } else {
             res.send('Failed to fetch the menu.');
         }
