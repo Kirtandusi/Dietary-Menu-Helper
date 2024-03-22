@@ -1,46 +1,45 @@
 const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const { format } = require('date-fns');
-
+const puppeteer = require('puppeteer')
 const app = express();
-app.use(cors());
+app.use(express.json()); //using cors, not json
+//app.set('view engine', 'ejs');
 
-
+counter = 0;
 async function scrapeMenu(urls) {
-    const today = format(new Date(), 'yyyy-MM-dd');
-
-    const allMenus = await Promise.all(urls.map(url => 
-        axios.get(url)
-            .then(response => {
-                const $ = cheerio.load(response.data);
-                const dailyMenus = $('.item-list.daily-menu');
-                const menus = [];
-
-                dailyMenus.each((index, menu) => {
-                    const date = $(menu).find('h2').text().trim();
-                    const menuItems = [];
-
-                    $(menu).find('.row-item').each((i, item) => {
-                        const itemName = $(item).find('h3').text().trim();
-                        const itemDescription = $(item).find('p').text().trim();
-                        menuItems.push({ name: itemName, description: itemDescription });
-                    });
-
-                    menus.push({ date, items: menuItems });
-                });
-
-                return menus;
-            })
-            .catch(error => {
-                console.error('Error fetching menu:', error);
-                return []; // return an empty array on error
-            })
-    ));
-
-    return allMenus.flat(); // flatten the array of arrays
+    const browser = await puppeteer.launch();
+    const allFoodNames = [];
+    for (let url of urls) {
+    //console.log("reached website") 
+    const page = await browser.newPage();
+    await page.goto(url);
+    //console.log("reached website")
+    try {
+        //console.log("reached website")
+        const button = await page.waitForSelector('button[data-testid="018026bcdb3445168421175d9ae4dd06"]', { timeout: 3000 });
+        if (button) {
+            await button.click();
+        }
+    } catch (error) {
+        //console.error('Button not found: ', error);
+    }
+  //  console.log("reached?")
+    await page.waitForSelector('span.food-name'); //problem!
+   // console.log("definitely")
+    const foodNames = await page.$$eval('span.food-name', elements => elements.map(item => item.innerText));
+    allFoodNames.push(foodNames);
+   // console.log("semi done")
+   counter++;
+   console.log(counter)
+    await page.close()
+   // console.log("done again?")
+   
+    } //never breaks!
+    //console.log("finished")
+    
+    await browser.close();
+    return allFoodNames;
 }
+
 
 app.get('/menu', async (req, res) => {
 let today = new Date();
@@ -71,10 +70,10 @@ let urls = [
     `https://wisc-housingdining.nutrislice.com/menu/four-lakes-market/dinner/${today}`
 ];
     try {
-        const menus = scrapeMenu(urls);
+        const menus = await scrapeMenu(urls);
 
         if (menus.length > 0) {
-         res.render('menu', { menus });
+            res.status(200).json(menus)
          } else {
             res.send('Failed to fetch the menu.');
         }
@@ -85,7 +84,7 @@ let urls = [
 });
 
 
-const port = process.env.PORT || 3001;
+const port = 3001;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
