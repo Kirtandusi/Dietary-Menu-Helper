@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const MealPlanChart = () => {
+const MealPlanChart = ({ buttonClicked, setButtonClicked }) => {
   // VAR SET IN PLACE FOR USE OF BACKEND IN FUTURE
   const [mealPlan, setMealPlan] = useState([
     {
@@ -60,13 +60,16 @@ const MealPlanChart = () => {
   ]);
 
   useEffect(() => {
+    console.log("ran");
+    if (!buttonClicked) return;
     fetch("http://localhost:3001/meal")
       .then((res) => res.json())
       .then((res) => {
         setMealPlan(() => res.mealPlan);
         console.log(res.mealPlan);
       });
-  }, []);
+    setButtonClicked(false);
+  }, [buttonClicked]); // fetch to demo meal once mealPlan is set to true
 
   return (
     <div>
@@ -74,30 +77,18 @@ const MealPlanChart = () => {
         id="box-container"
         className="flex justify-center items-center w-[700px] h-[450px] bg-stone-700"
       >
-        <div className="meal-plan-box">
-          <h1 className="text-xl">{mealPlan[0].name}</h1>
-          <ul className="text-left">
-            <li>Appetizer: {mealPlan[0].appetizer.food_title}</li>
-            <li>Entree: {mealPlan[0].meal.food_title}</li>
-            <li>Dessert: {mealPlan[0].dessert.food_title}</li>
-          </ul>
-        </div>
-        <div className="meal-plan-box">
-          <h1 className="text-xl">{mealPlan[1].name}</h1>
-          <ul>
-            <li>Appetizer: {mealPlan[1].appetizer.food_title}</li>
-            <li>Entree: {mealPlan[1].meal.food_title}</li>
-            <li>Dessert: {mealPlan[1].dessert.food_title}</li>
-          </ul>
-        </div>
-        <div className="meal-plan-box">
-          <h1 className="text-xl">{mealPlan[2].name}</h1>
-          <ul>
-            <li>Appetizer: {mealPlan[2].appetizer.food_title}</li>
-            <li>Entree: {mealPlan[2].meal.food_title}</li>
-            <li>Dessert: {mealPlan[2].dessert.food_title}</li>
-          </ul>
-        </div>
+        {mealPlan.map((meal, index) => {
+          return (
+            <div className="meal-plan-box">
+              <h1 className="text-xl">{meal.name}</h1>
+              <ul className="text-left">
+                <li>Appetizer: {meal.appetizer.food_title}</li>
+                <li>Entree: {meal.meal.food_title}</li>
+                <li>Dessert: {meal.dessert.food_title}</li>
+              </ul>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
